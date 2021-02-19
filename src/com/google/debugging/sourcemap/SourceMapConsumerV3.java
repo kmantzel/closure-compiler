@@ -403,9 +403,8 @@ public final class SourceMapConsumerV3 implements SourceMapConsumer,
    * the target column.
    */
   private int search(ArrayList<Entry> entries, int target, int start, int end) {
-    int mid = end;
     while (start <= end) {
-      mid = ((end - start) / 2) + start;
+      int mid = ((end - start) / 2) + start;
       int compare = compareEntry(entries, mid, target);
       if (compare == 0) {
         return mid;
@@ -417,7 +416,7 @@ public final class SourceMapConsumerV3 implements SourceMapConsumer,
         end = mid - 1;
       }
     }
-    return (approximateMappings) ? mid : -1;
+    return (approximateMappings) ? end : -1;
   }
 
   /**
