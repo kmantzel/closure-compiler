@@ -62,7 +62,7 @@ public final class SourceMapConsumerV3 implements SourceMapConsumer,
   }
 
   public SourceMapConsumerV3() {
-    this(false);
+    this(true);
   }
 
   public SourceMapConsumerV3(boolean approximateMappings) {
