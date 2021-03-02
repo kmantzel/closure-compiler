@@ -74,7 +74,8 @@ public final class SourceMapConsumerV3 implements SourceMapConsumer,
    */
   @Override
   public void parse(String contents) throws SourceMapParseException {
-    parse(contents);
+    SourceMapObject sourceMapObject = SourceMapObjectParser.parse(contents);
+    parse(sourceMapObject, null);
   }
   
   /** Parses the given contents containing a source map. */
