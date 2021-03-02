@@ -61,20 +61,22 @@ public final class SourceMapConsumerV3 implements SourceMapConsumer,
     }
   }
 
+  public SourceMapConsumerV3() {
+    this(false);
+  }
+
+  public SourceMapConsumerV3(boolean approximateMappings) {
+    this.approximateMappings = approximateMappings;
+  }
+
   /**
    * Parses the given contents containing a source map.
    */
   @Override
   public void parse(String contents) throws SourceMapParseException {
-    parse(contents, true);
+    parse(contents);
   }
   
-  public void parse(String contents, boolean approximateMappings) throws SourceMapParseException {
-    this.approximateMappings = approximateMappings;
-    SourceMapObject sourceMapObject = SourceMapObjectParser.parse(contents);
-    parse(sourceMapObject, null);
-  }
-
   /** Parses the given contents containing a source map. */
   public void parse(SourceMapObject sourceMapObject, SourceMapSupplier sectionSupplier)
       throws SourceMapParseException {
@@ -403,7 +405,7 @@ public final class SourceMapConsumerV3 implements SourceMapConsumer,
    * the target column.
    */
   private int search(ArrayList<Entry> entries, int target, int start, int end) {
-    while (start <= end) {
+    while (true) {
       int mid = ((end - start) / 2) + start;
       int compare = compareEntry(entries, mid, target);
       if (compare == 0) {
@@ -411,12 +413,17 @@ public final class SourceMapConsumerV3 implements SourceMapConsumer,
       } else if (compare < 0) {
         // it is in the upper half
         start = mid + 1;
+        if (start > end) {
+          return end;
+        }
       } else {
         // it is in the lower half
         end = mid - 1;
+        if (end < start) {
+          return end;
+        }
       }
     }
-    return (approximateMappings) ? end : -1;
   }
 
   /**
