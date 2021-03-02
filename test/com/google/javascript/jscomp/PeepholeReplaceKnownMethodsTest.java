@@ -191,7 +191,6 @@ public final class PeepholeReplaceKnownMethodsTest extends CompilerTestCase {
   public void testFoldStringSubstr() {
     fold("x = 'abcde'.substr(0,2)", "x = 'ab'");
     fold("x = 'abcde'.substr(1,2)", "x = 'bc'");
-    fold("x = 'abcde'['substr'](1,3)", "x = 'bcd'");
     fold("x = 'abcde'.substr(2)", "x = 'cde'");
 
     // we should be leaving negative indexes alone for now
@@ -209,7 +208,6 @@ public final class PeepholeReplaceKnownMethodsTest extends CompilerTestCase {
   public void testFoldStringSubstring() {
     fold("x = 'abcde'.substring(0,2)", "x = 'ab'");
     fold("x = 'abcde'.substring(1,2)", "x = 'b'");
-    fold("x = 'abcde'['substring'](1,3)", "x = 'bc'");
     fold("x = 'abcde'.substring(2)", "x = 'cde'");
 
     // we should be leaving negative, out-of-bound, and inverted indices alone for now
@@ -228,7 +226,6 @@ public final class PeepholeReplaceKnownMethodsTest extends CompilerTestCase {
   public void testFoldStringSlice() {
     fold("x = 'abcde'.slice(0,2)", "x = 'ab'");
     fold("x = 'abcde'.slice(1,2)", "x = 'b'");
-    fold("x = 'abcde'['slice'](1,3)", "x = 'bc'");
     fold("x = 'abcde'.slice(2)", "x = 'cde'");
 
     // we should be leaving negative, out-of-bound, and inverted indices alone for now
@@ -443,7 +440,6 @@ public final class PeepholeReplaceKnownMethodsTest extends CompilerTestCase {
 
     fold("Math.abs('-1')", "1");
     fold("Math.abs(-2)", "2");
-    fold("Math['abs']('-3')", "3");
     fold("Math.abs(null)", "0");
     fold("Math.abs('')", "0");
     fold("Math.abs([])", "0");
@@ -630,66 +626,6 @@ public final class PeepholeReplaceKnownMethodsTest extends CompilerTestCase {
     setExpectParseWarningsThisTest();
 
     fold("x = parseInt(021, 8)", "x = 15");
-  }
-
-  @Test
-  public void testReplaceWithCharAt_withJSTypes() {
-    enableTypeCheck();
-
-    foldStringTyped("a.substring(0, 1)", "a.charAt(0)");
-    foldSameStringTyped("a.substring(-4, -3)");
-    foldSameStringTyped("a.substring(i, j + 1)");
-    foldSameStringTyped("a.substring(i, i + 1)");
-    foldSameStringTyped("a.substring(1, 2, 3)");
-    foldSameStringTyped("a.substring()");
-    foldSameStringTyped("a.substring(1)");
-    foldSameStringTyped("a.substring(1, 3, 4)");
-    foldSameStringTyped("a.substring(-1, 3)");
-    foldSameStringTyped("a.substring(2, 1)");
-    foldSameStringTyped("a.substring(3, 1)");
-
-    foldStringTyped("a.slice(4, 5)", "a.charAt(4)");
-    foldSameStringTyped("a.slice(-2, -1)");
-    foldStringTyped("var /** number */ i; a.slice(0, 1)", "var /** number */ i; a.charAt(0)");
-    foldSameStringTyped("a.slice(i, j + 1)");
-    foldSameStringTyped("a.slice(i, i + 1)");
-    foldSameStringTyped("a.slice(1, 2, 3)");
-    foldSameStringTyped("a.slice()");
-    foldSameStringTyped("a.slice(1)");
-    foldSameStringTyped("a.slice(1, 3, 4)");
-    foldSameStringTyped("a.slice(-1, 3)");
-    foldSameStringTyped("a.slice(2, 1)");
-    foldSameStringTyped("a.slice(3, 1)");
-
-    foldStringTyped("a.substr(0, 1)", "a.charAt(0)");
-    foldStringTyped("a.substr(2, 1)", "a.charAt(2)");
-    foldSameStringTyped("a.substr(-2, 1)");
-    foldSameStringTyped("a.substr(bar(), 1)");
-    foldSameStringTyped("''.substr(bar(), 1)");
-    foldSameStringTyped("a.substr(2, 1, 3)");
-    foldSameStringTyped("a.substr(1, 2, 3)");
-    foldSameStringTyped("a.substr()");
-    foldSameStringTyped("a.substr(1)");
-    foldSameStringTyped("a.substr(1, 2)");
-    foldSameStringTyped("a.substr(1, 2, 3)");
-
-    foldSame("function f(/** ? */ a) { a.substring(0, 1); }");
-    foldSame("function f(/** ? */ a) { a.substr(0, 1); }");
-    foldSame(
-        lines(
-            "/** @constructor */ function A() {};",
-            "A.prototype.substring = function(begin, end) {};",
-            "function f(/** !A */ a) { a.substring(0, 1); }"));
-    foldSame(
-        lines(
-            "/** @constructor */ function A() {};",
-            "A.prototype.slice = function(begin, end) {};",
-            "function f(/** !A */ a) { a.slice(0, 1); }"));
-
-    useTypes = false;
-    foldSameStringTyped("a.substring(0, 1)");
-    foldSameStringTyped("a.substr(0, 1)");
-    foldSameStringTyped("''.substring(i, i + 1)");
   }
 
   @Test

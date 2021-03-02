@@ -88,6 +88,10 @@ class PeepholeFoldConstants extends AbstractPeepholeOptimization {
       case VOID:
         return tryReduceVoid(subtree);
 
+      case OPTCHAIN_GETPROP:
+      case GETPROP:
+        return tryFoldGetProp(subtree);
+
       default:
         tryReduceOperandsForOp(subtree);
         return tryFoldBinaryOperator(subtree);
@@ -109,9 +113,7 @@ class PeepholeFoldConstants extends AbstractPeepholeOptimization {
 
     // If we've reached here, node is truly a binary operator.
     switch (subtree.getToken()) {
-      case OPTCHAIN_GETPROP:
-      case GETPROP:
-        return tryFoldGetProp(subtree, left, right);
+
 
       case GETELEM:
       case OPTCHAIN_GETELEM:
@@ -973,8 +975,7 @@ class PeepholeFoldConstants extends AbstractPeepholeOptimization {
       return true;
     }
     if (shouldUseTypes) {
-      return (n.getColor() != null && n.getColor().is(NativeColorId.NUMBER))
-          || (n.getJSType() != null && n.getJSType().isNumberValueType());
+      return n.getColor() != null && n.getColor().is(NativeColorId.NUMBER);
     }
     return false;
   }
@@ -984,8 +985,7 @@ class PeepholeFoldConstants extends AbstractPeepholeOptimization {
       return true;
     }
     if (shouldUseTypes) {
-      return (n.getColor() != null && n.getColor().is(NativeColorId.BIGINT))
-          || (n.getJSType() != null && n.getJSType().isBigIntValueType());
+      return n.getColor() != null && n.getColor().is(NativeColorId.BIGINT);
     }
     return false;
   }
@@ -1096,8 +1096,7 @@ class PeepholeFoldConstants extends AbstractPeepholeOptimization {
       return true;
     }
     if (shouldUseTypes) {
-      return (n.getColor() != null && n.getColor().is(NativeColorId.STRING))
-          || (n.getJSType() != null && n.getJSType().isStringValueType());
+      return n.getColor() != null && n.getColor().is(NativeColorId.STRING);
     }
     return false;
   }
@@ -1519,14 +1518,12 @@ class PeepholeFoldConstants extends AbstractPeepholeOptimization {
     checkArgument(n.isGetElem() || n.isOptChainGetElem());
 
     if (left.isObjectLit()) {
-      return tryFoldObjectPropAccess(n, left, right);
-    }
-
-    if (left.isArrayLit()) {
+      if (right.isString()) {
+        return tryFoldObjectPropAccess(n, left, right.getString());
+      }
+    } else if (left.isArrayLit()) {
       return tryFoldArrayAccess(n, left, right);
-    }
-
-    if (left.isString()) {
+    } else if (left.isString()) {
       return tryFoldStringArrayAccess(n, left, right);
     }
     return n;
@@ -1537,15 +1534,16 @@ class PeepholeFoldConstants extends AbstractPeepholeOptimization {
    * access. For prop access on arrays, only tries to fold array-length. e.g [1, 2, 3].length ==> 3,
    * [x, y].length ==> 2
    */
-  private Node tryFoldGetProp(Node n, Node left, Node right) {
+  private Node tryFoldGetProp(Node n) {
     checkArgument(n.isGetProp() || n.isOptChainGetProp());
+    Node left = n.getFirstChild();
+    String name = Node.getGetpropString(n);
 
     if (left.isObjectLit()) {
-      return tryFoldObjectPropAccess(n, left, right);
+      return tryFoldObjectPropAccess(n, left, name);
     }
 
-    if (right.isString() &&
-        right.getString().equals("length")) {
+    if (name.equals("length")) {
       int knownLength = -1;
       switch (left.getToken()) {
         case ARRAYLIT:
@@ -1724,10 +1722,10 @@ class PeepholeFoldConstants extends AbstractPeepholeOptimization {
    *   <li>`({a() { return 1; }}).a()` ---> `(function() { return 1; }())`
    * </ul>
    */
-  private Node tryFoldObjectPropAccess(Node n, Node left, Node right) {
+  private Node tryFoldObjectPropAccess(Node n, Node left, String name) {
     checkArgument(NodeUtil.isNormalOrOptChainGet(n));
 
-    if (!left.isObjectLit() || !right.isString()) {
+    if (!left.isObjectLit()) {
       return n;
     }
 
@@ -1759,7 +1757,7 @@ class PeepholeFoldConstants extends AbstractPeepholeOptimization {
           if (!prop.isString()) {
             return n;
           }
-          if (prop.getString().equals(right.getString())) {
+          if (prop.getString().equals(name)) {
             key = c;
             value = c.getSecondChild();
           }
@@ -1768,7 +1766,7 @@ class PeepholeFoldConstants extends AbstractPeepholeOptimization {
         case GETTER_DEF:
         case STRING_KEY:
         case MEMBER_FUNCTION_DEF:
-          if (c.getString().equals(right.getString())) {
+          if (c.getString().equals(name)) {
             key = c;
             value = key.getFirstChild();
           }

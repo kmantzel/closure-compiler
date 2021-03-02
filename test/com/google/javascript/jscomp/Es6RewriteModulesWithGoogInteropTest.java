@@ -31,7 +31,6 @@ import static com.google.javascript.jscomp.modules.EsModuleProcessor.NAMESPACE_I
 import static com.google.javascript.jscomp.modules.ModuleMapCreator.MISSING_NAMESPACE_IMPORT;
 
 import com.google.common.collect.ImmutableList;
-import com.google.javascript.jscomp.CompilerOptions.LanguageMode;
 import com.google.javascript.jscomp.testing.TestExternsBuilder;
 import com.google.javascript.jscomp.type.ReverseAbstractInterpreter;
 import com.google.javascript.jscomp.type.SemanticReverseAbstractInterpreter;
@@ -105,7 +104,6 @@ public final class Es6RewriteModulesWithGoogInteropTest extends CompilerTestCase
   public void setUp() throws Exception {
     super.setUp();
     // ECMASCRIPT5 to trigger module processing after parsing.
-    setLanguage(LanguageMode.ECMASCRIPT_2015, LanguageMode.ECMASCRIPT5);
     enableTypeInfoValidation();
     enableCreateModuleMap();
   }
@@ -114,7 +112,6 @@ public final class Es6RewriteModulesWithGoogInteropTest extends CompilerTestCase
   protected CompilerOptions getOptions() {
     CompilerOptions options = super.getOptions();
     // ECMASCRIPT5 to Trigger module processing after parsing.
-    options.setLanguageOut(LanguageMode.ECMASCRIPT5);
     options.setWarningLevel(DiagnosticGroups.LINT_CHECKS, CheckLevel.ERROR);
 
     return options;
@@ -1114,7 +1111,7 @@ public final class Es6RewriteModulesWithGoogInteropTest extends CompilerTestCase
             new TestExternsBuilder().addClosureExterns().build(),
             lines(
                 "use(is.missing, is.missing.x);", //
-                "/** @const */ var module$input1 = {};")));
+                "/** @const */ var module$testcode1 = {};")));
 
     test(
         srcs(
@@ -1127,7 +1124,7 @@ public final class Es6RewriteModulesWithGoogInteropTest extends CompilerTestCase
             new TestExternsBuilder().addClosureExterns().build(),
             lines(
                 "use(is.missing.prop, is.missing.prop.x);", //
-                "/** @const */ var module$input1 = {};")));
+                "/** @const */ var module$testcode1 = {};")));
 
     test(
         srcs(
@@ -1140,6 +1137,6 @@ public final class Es6RewriteModulesWithGoogInteropTest extends CompilerTestCase
             new TestExternsBuilder().addClosureExterns().build(),
             lines(
                 "use(is.missing, is.missing.x, is.missing.y);", //
-                "/** @const */ var module$input1 = {};")));
+                "/** @const */ var module$testcode1 = {};")));
   }
 }

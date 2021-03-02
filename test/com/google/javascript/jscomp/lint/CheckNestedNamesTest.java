@@ -20,7 +20,6 @@ import static com.google.javascript.jscomp.lint.CheckNestedNames.NESTED_NAME_IN_
 import com.google.javascript.jscomp.CheckLevel;
 import com.google.javascript.jscomp.Compiler;
 import com.google.javascript.jscomp.CompilerOptions;
-import com.google.javascript.jscomp.CompilerOptions.LanguageMode;
 import com.google.javascript.jscomp.CompilerPass;
 import com.google.javascript.jscomp.CompilerTestCase;
 import com.google.javascript.jscomp.DiagnosticGroups;
@@ -39,7 +38,6 @@ public final class CheckNestedNamesTest extends CompilerTestCase {
   @Before
   public void setUp() throws Exception {
     super.setUp();
-    setAcceptedLanguage(LanguageMode.ECMASCRIPT_NEXT);
   }
 
   @Override
@@ -95,6 +93,16 @@ public final class CheckNestedNamesTest extends CompilerTestCase {
     testWarning(
         "goog.module('a'); let F = function() {}; /** something */ F.E = class {};",
         NESTED_NAME_IN_GOOG_MODULE);
+  }
+
+  @Test
+  public void testNestedNames_noRHS() {
+    testNoWarning("goog.module('a'); class C {}; C.E;");
+    testWarning("goog.module('a'); class C {}; /** @interface */ C.E;", NESTED_NAME_IN_GOOG_MODULE);
+    testWarning(
+        "goog.module('a'); class C {}; /** @enum {string} */ C.E;", NESTED_NAME_IN_GOOG_MODULE);
+    testWarning(
+        "goog.module('a'); class C {}; /** @typedef {{a:2}} */ C.T;", NESTED_NAME_IN_GOOG_MODULE);
   }
 
   @Test

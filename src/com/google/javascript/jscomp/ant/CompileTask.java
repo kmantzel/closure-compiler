@@ -72,7 +72,7 @@ import org.apache.tools.ant.types.resources.FileResource;
  */
 public final class CompileTask
     extends Task {
-  private CompilerOptions.LanguageMode languageIn;
+  private final CompilerOptions.LanguageMode languageIn;
   private CompilerOptions.LanguageMode languageOut;
   private WarningLevel warningLevel;
   private boolean debugOptions;
@@ -105,8 +105,8 @@ public final class CompileTask
   private boolean strictModeInput;
 
   public CompileTask() {
-    this.languageIn = CompilerOptions.LanguageMode.ECMASCRIPT_2015;
-    this.languageOut = CompilerOptions.LanguageMode.ECMASCRIPT3;
+    this.languageIn = CompilerOptions.LanguageMode.STABLE_IN;
+    this.languageOut = CompilerOptions.LanguageMode.STABLE_OUT;
     this.warningLevel = WarningLevel.DEFAULT;
     this.debugOptions = false;
     this.compilationLevel = CompilationLevel.SIMPLE_OPTIMIZATIONS;
@@ -136,15 +136,6 @@ public final class CompileTask
             "Unrecognized 'languageIn' option value (" + value + ")");
     }
     return language;
-  }
-
-  /**
-   * Set the language to which input sources conform.
-   * @param value The name of the language.
-   *     (ECMASCRIPT3, ECMASCRIPT5, ECMASCRIPT5_STRICT).
-   */
-  public void setLanguageIn(String value) {
-    this.languageIn = parseLanguageMode(value);
   }
 
   /**

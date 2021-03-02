@@ -21,6 +21,7 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.errorprone.annotations.Immutable;
+import java.io.Serializable;
 import javax.annotation.Nullable;
 
 /**
@@ -33,7 +34,7 @@ import javax.annotation.Nullable;
  */
 @AutoValue
 @Immutable
-public abstract class SingletonColorFields {
+public abstract class SingletonColorFields implements Serializable {
 
   abstract String getId();
 
@@ -63,6 +64,8 @@ public abstract class SingletonColorFields {
   @Nullable
   abstract NativeColorId getNativeColorId();
 
+  abstract boolean isClosureAssert();
+
   /**
    * Builder for a singleton color. Should be passed to {@link
    * Color#createSingleton(SingletonColorFields)} after building and before using
@@ -89,6 +92,8 @@ public abstract class SingletonColorFields {
 
     public abstract Builder setNativeColorId(NativeColorId id);
 
+    public abstract Builder setClosureAssert(boolean isClosurePrimitiveAssertion);
+
     @VisibleForTesting
     public Builder setDebugName(String name) {
       setDebugInfo(DebugInfo.builder().setClassName(name).build());
@@ -105,6 +110,7 @@ public abstract class SingletonColorFields {
         .setPropertiesKeepOriginalName(false)
         .setDisambiguationSupertypes(ImmutableList.of())
         .setConstructor(false)
-        .setOwnProperties(ImmutableSet.of());
+        .setOwnProperties(ImmutableSet.of())
+        .setClosureAssert(false);
   }
 }

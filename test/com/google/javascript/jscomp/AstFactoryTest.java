@@ -23,7 +23,6 @@ import static com.google.javascript.rhino.testing.TypeSubject.assertType;
 
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
-import com.google.javascript.jscomp.CompilerOptions.LanguageMode;
 import com.google.javascript.jscomp.SyntacticScopeCreator.RedeclarationHandler;
 import com.google.javascript.jscomp.testing.TestExternsBuilder;
 import com.google.javascript.rhino.IR;
@@ -72,7 +71,6 @@ public class AstFactoryTest {
   private Node parseWithoutTypes(String externs, String source) {
     // parse the test code
     CompilerOptions options = new CompilerOptions();
-    options.setLanguageIn(LanguageMode.ECMASCRIPT_NEXT);
     compiler.init(
         ImmutableList.of(SourceFile.fromCode("externs", externs)),
         ImmutableList.of(SourceFile.fromCode("source", source)),
@@ -430,12 +428,9 @@ public class AstFactoryTest {
     Node jscompDotGlobal = astFactory.createGetProp(jscompNode, "global");
 
     assertNode(jscompDotGlobal).hasType(Token.GETPROP);
+    assertThat(Node.getGetpropString(jscompDotGlobal)).isEqualTo("global");
     Node firstChild = jscompDotGlobal.getFirstChild();
     assertThat(firstChild).isEqualTo(jscompNode);
-    Node secondChild = firstChild.getNext();
-    assertNode(secondChild).hasType(Token.STRING);
-    assertThat(secondChild.getString()).isEqualTo("global");
-    assertThat(secondChild.getNext()).isNull(); // only 2 children
 
     assertType(jscompDotGlobal.getJSType()).isEqualTo(getNativeType(JSTypeNative.GLOBAL_THIS));
   }
@@ -452,11 +447,8 @@ public class AstFactoryTest {
 
     assertNode(objDotToString).hasType(Token.GETPROP);
     Node firstChild = objDotToString.getFirstChild();
+    assertThat(Node.getGetpropString(objDotToString)).isEqualTo("toString");
     assertThat(firstChild).isEqualTo(obj);
-    Node secondChild = firstChild.getNext();
-    assertNode(secondChild).hasType(Token.STRING);
-    assertThat(secondChild.getString()).isEqualTo("toString");
-    assertThat(secondChild.getNext()).isNull(); // only 2 children
 
     assertType(objDotToString.getJSType()).isEqualTo(nativeObjectType.getPropertyType("toString"));
   }

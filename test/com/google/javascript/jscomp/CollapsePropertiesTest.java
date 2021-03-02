@@ -23,7 +23,6 @@ import static com.google.javascript.jscomp.deps.ModuleLoader.LOAD_WARNING;
 import static com.google.javascript.rhino.testing.Asserts.assertThrows;
 
 import com.google.common.collect.ImmutableMap;
-import com.google.javascript.jscomp.CompilerOptions.LanguageMode;
 import com.google.javascript.jscomp.CompilerOptions.PropertyCollapseLevel;
 import com.google.javascript.jscomp.deps.ModuleLoader.ResolutionMode;
 import java.util.ArrayList;
@@ -68,8 +67,6 @@ public final class CollapsePropertiesTest extends CompilerTestCase {
   }
 
   private void setupModuleExportsOnly() {
-    this.setAcceptedLanguage(LanguageMode.ECMASCRIPT_2015);
-    this.setLanguageOut(LanguageMode.ECMASCRIPT5);
     enableProcessCommonJsModules();
     enableTranspile();
     propertyCollapseLevel = PropertyCollapseLevel.MODULE_EXPORT;
@@ -3673,7 +3670,6 @@ public final class CollapsePropertiesTest extends CompilerTestCase {
   @Test
   public void testPropertyMethodAssignment_receiverAffectedByCollapse() {
     // ES5 version
-    setLanguage(LanguageMode.ECMASCRIPT3, LanguageMode.ECMASCRIPT3);
     test(
         lines(
             "var foo = { ",
@@ -3712,7 +3708,6 @@ public final class CollapsePropertiesTest extends CompilerTestCase {
             "foo$myFunc();"));
 
     // ES6 version
-    setLanguage(LanguageMode.ECMASCRIPT_2015, LanguageMode.ECMASCRIPT_2015);
     test(
         lines(
             "var foo = { ",
@@ -3803,7 +3798,6 @@ public final class CollapsePropertiesTest extends CompilerTestCase {
   @Test
   public void testPropertyMethodAssignment_noThis() {
     // ES5 Version
-    setLanguage(LanguageMode.ECMASCRIPT3, LanguageMode.ECMASCRIPT3);
     test(
         lines(
             "var foo = { ",
@@ -3821,7 +3815,6 @@ public final class CollapsePropertiesTest extends CompilerTestCase {
             "foo$myFunc();"));
 
     // ES6 version
-    setLanguage(LanguageMode.ECMASCRIPT_2015, LanguageMode.ECMASCRIPT_2015);
     test(
         lines(
             "var foo = { ",

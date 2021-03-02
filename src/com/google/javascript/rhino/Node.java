@@ -54,14 +54,13 @@ import com.google.javascript.rhino.StaticSourceFile.SourceKind;
 import com.google.javascript.rhino.jstype.JSType;
 import java.io.IOException;
 import java.io.ObjectInput;
+import java.io.ObjectInputStream;
 import java.io.ObjectOutput;
 import java.io.Serializable;
 import java.math.BigInteger;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Iterator;
-import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Objects;
 import java.util.Set;
@@ -484,7 +483,7 @@ public class Node implements Serializable {
     }
 
     @GwtIncompatible("ObjectInputStream")
-    private void readObject(java.io.ObjectInputStream in) throws Exception {
+    private void readObject(ObjectInputStream in) throws Exception {
       in.defaultReadObject();
 
       this.str = this.str.intern();
@@ -564,6 +563,13 @@ public class Node implements Serializable {
       clone.raw = raw;
       clone.cooked = cooked;
       return copyNodeFields(clone, cloneTypeExprs);
+    }
+
+    @GwtIncompatible("ObjectInputStream")
+    private void readObject(ObjectInputStream in) throws Exception {
+      in.defaultReadObject();
+
+      this.raw = this.raw.intern();
     }
   }
 
@@ -1670,6 +1676,26 @@ public class Node implements Serializable {
       return -1;
     }
     return file.getLineOffset(lineno) + getCharno();
+  }
+
+  public final int getPropnameSourceOffset() {
+    checkState(this.isGetProp() || this.isOptChainGetProp(), this);
+
+    if (this.length == -1) {
+      return -1;
+    }
+
+    int sourceOffset = this.getSourceOffset();
+    if (sourceOffset == -1) {
+      return -1;
+    }
+
+    String name = this.getOriginalName();
+    if (name == null) {
+      name = Node.getGetpropString(this);
+    }
+
+    return sourceOffset + this.length - name.length();
   }
 
   public final int getSourcePosition() {
@@ -3613,11 +3639,6 @@ public class Node implements Serializable {
     return this.token == Token.YIELD;
   }
 
-  // see writeObject() and readObject() for how this field is used in (de)serialization.
-  // TODO(bradfordcsmith): We are assuming that we will never have multiple (de)serializations
-  // happening at the same time.
-  private static List<Node> incompleteNodes = null;
-
   @GwtIncompatible("ObjectOutputStream")
   private void writeObject(java.io.ObjectOutputStream out) throws Exception {
     // Do not call out.defaultWriteObject() as all the fields are transient and this class does not
@@ -3629,17 +3650,6 @@ public class Node implements Serializable {
     writeEncodedInt(out, sourcePosition);
     writeEncodedInt(out, length);
 
-    boolean isStartingNode = false;
-    if (incompleteNodes == null) {
-      // The first node to get serialized is responsible for completing serialization
-      // of all the other nodes whose serialization it triggers.
-      // This allows us to avoid deep recursion that would happen otherwise due to
-      // node -> type obj -> another node -> type obj...
-      isStartingNode = true;
-      incompleteNodes = new ArrayList<>();
-    }
-    incompleteNodes.add(this);
-
     // Serialize the embedded children linked list here to limit the depth of recursion (and avoid
     // serializing redundant information like the previous reference)
     Node currentChild = first;
@@ -3650,35 +3660,16 @@ public class Node implements Serializable {
     // Null marks the end of the children.
     out.writeObject(null);
     out.writeObject(propListHead);
-
-    if (isStartingNode) {
-      List<Node> nodeList = Node.incompleteNodes;
-      Node.incompleteNodes = null;
-      for (Node n : nodeList) {
-        out.writeObject(n.jstype);
-      }
-    }
   }
 
   @GwtIncompatible("ObjectInputStream")
-  private void readObject(java.io.ObjectInputStream in) throws Exception {
+  private void readObject(ObjectInputStream in) throws Exception {
     // Do not call in.defaultReadObject() as all the fields are transient and this class does not
     // have a superclass.
 
     token = Token.values()[in.readUnsignedByte()];
     sourcePosition = readEncodedInt(in);
     length = readEncodedInt(in);
-
-    boolean isStartingNode = false;
-    if (incompleteNodes == null) {
-      // The first node to get deserialized is responsible for completing deserialization
-      // of all the other nodes whose deserialization it triggers.
-      // This allows us to avoid deep recursion that would happen otherwise due to
-      // node -> type obj -> another node -> type obj...
-      isStartingNode = true;
-      incompleteNodes = new ArrayList<>();
-    }
-    incompleteNodes.add(this);
 
     // Deserialize the children list restoring the value of the previous reference.
     first = (Node) in.readObject();
@@ -3704,14 +3695,6 @@ public class Node implements Serializable {
       first.previous = lastChild;
     }
     propListHead = (PropListItem) in.readObject();
-
-    if (isStartingNode) {
-      List<Node> nodeList = Node.incompleteNodes;
-      Node.incompleteNodes = null;
-      for (Node n : nodeList) {
-        n.jstype = (JSType) in.readObject();
-      }
-    }
   }
 
   /**

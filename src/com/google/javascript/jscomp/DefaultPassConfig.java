@@ -315,10 +315,6 @@ public final class DefaultPassConfig extends PassConfig {
 
     checks.add(checkSideEffects);
 
-    if (options.enables(DiagnosticGroups.MISSING_PROVIDE)) {
-      checks.add(checkProvides);
-    }
-
     if (options.angularPass) {
       checks.add(angularPass);
     }
@@ -498,6 +494,14 @@ public final class DefaultPassConfig extends PassConfig {
       // Gather property names in externs so they can be queried by the optimizing passes.
       // See b/180424427 for why this runs in stage 1 and not stage 2.
       checks.add(gatherExternProperties);
+
+      if (options.checkTypes || options.inferTypes) {
+        checks.add(typesToColors);
+      }
+
+      if (!options.shouldUnsafelyPreserveTypesForDebugging()) {
+        checks.add(removeTypes);
+      }
     }
 
     assertAllOneTimePasses(checks);
@@ -604,14 +608,6 @@ public final class DefaultPassConfig extends PassConfig {
     // TODO(b/160616664): this should be in getChecks() instead of getOptimizations(). But
     // for that the pass needs to understand constant properties as well. See b/31301233#comment10
     passes.add(checkConstParams);
-
-    if (options.checkTypes || options.inferTypes) {
-      passes.add(typesToColors);
-    }
-
-    if (!options.shouldUnsafelyPreserveTypesForDebugging()) {
-      passes.add(removeTypes);
-    }
 
     // Running RemoveUnusedCode before disambiguate properties allows disambiguate properties to be
     // more effective if code that would prevent disambiguation can be removed.
@@ -1164,14 +1160,6 @@ public final class DefaultPassConfig extends PassConfig {
           .setFeatureSetForChecks()
           .build();
 
-  /** Makes sure @constructor is paired with goog.provides(). */
-  private final PassFactory checkProvides =
-      PassFactory.builderForHotSwap()
-          .setName("checkProvides")
-          .setFeatureSetForChecks()
-          .setInternalFactory(CheckProvides::new)
-          .build();
-
   private static final DiagnosticType GENERATE_EXPORTS_ERROR =
       DiagnosticType.error(
           "JSC_GENERATE_EXPORTS_ERROR",
@@ -1324,8 +1312,6 @@ public final class DefaultPassConfig extends PassConfig {
                   new ReplaceMessages(
                       compiler,
                       options.messageBundle,
-                      /* warn about message dupes */
-                      true,
                       /* allow messages with goog.getMsg */
                       JsMessage.Style.CLOSURE,
                       /* if we can't find a translation, don't worry about it. */
@@ -1341,8 +1327,6 @@ public final class DefaultPassConfig extends PassConfig {
                   new ReplaceMessagesForChrome(
                       compiler,
                       new GoogleJsMessageIdGenerator(options.tcProjectId),
-                      /* warn about message dupes */
-                      true,
                       /* allow messages with goog.getMsg */
                       JsMessage.Style.CLOSURE))
           .setFeatureSetForOptimizations()
@@ -1811,7 +1795,7 @@ public final class DefaultPassConfig extends PassConfig {
   private final PassFactory checkAccessControls =
       PassFactory.builderForHotSwap()
           .setName("checkAccessControls")
-          .setInternalFactory((compiler) -> new CheckAccessControls(compiler))
+          .setInternalFactory(CheckAccessControls::new)
           .setFeatureSetForChecks()
           .build();
 
@@ -2001,10 +1985,9 @@ public final class DefaultPassConfig extends PassConfig {
                               compiler,
                               options.stripTypes,
                               options.stripNameSuffixes,
-                              options.stripNamePrefixes);
-                      if (options.getTweakProcessing().shouldStrip()) {
-                        pass.enableTweakStripping();
-                      }
+                              options.stripNamePrefixes,
+                              options.getTweakProcessing().shouldStrip());
+
                       pass.process(externs, jsRoot);
                     }
                   })

@@ -28,6 +28,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
 import com.google.errorprone.annotations.Immutable;
+import java.io.Serializable;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Function;
@@ -35,7 +36,7 @@ import java.util.function.Function;
 /** A simplified version of a Closure or TS type for use by optimizations */
 @AutoOneOf(Color.Kind.class)
 @Immutable
-public abstract class Color {
+public abstract class Color implements Serializable {
 
   // Colors are implemented so that internally, they are either a singleton or a set of other colors
   // In practice this is partially opaque to callers. Callers can access the elements of a color
@@ -65,6 +66,20 @@ public abstract class Color {
             && singleton().getNativeColorId().isPrimitive();
       case UNION:
         return union().stream().allMatch(Color::isPrimitive);
+    }
+    throw new AssertionError();
+  }
+
+  /**
+   * Whether this type is some Closure assertion function removable by Closure-specific
+   * optimizations.
+   */
+  public final boolean isClosureAssert() {
+    switch (kind()) {
+      case SINGLETON:
+        return this.singleton().isClosureAssert();
+      case UNION:
+        return union().stream().allMatch(Color::isClosureAssert);
     }
     throw new AssertionError();
   }
@@ -123,6 +138,29 @@ public abstract class Color {
     return collect(this, SingletonColorFields::getOwnProperties).stream()
         .flatMap(Set::stream)
         .collect(toImmutableSet());
+  }
+
+  /**
+   * Returns true if the color or any of its ancestors has the given property
+   *
+   * <p>If this is a union, returns true if /any/ union alternate has the property.
+   *
+   * <p>TODO(b/177695515): delete this method
+   */
+  public boolean mayHaveProperty(String propertyName) {
+    // implementation note: we're not caching the results of this call at all. That's because the
+    // type graph is generally shallow and so this isn't expected to be time-consuming.
+    switch (kind()) {
+      case SINGLETON:
+        if (this.singleton().getOwnProperties().contains(propertyName)) {
+          return true;
+        }
+        return this.singleton().getDisambiguationSupertypes().stream()
+            .anyMatch(element -> element.mayHaveProperty(propertyName));
+      case UNION:
+        return this.union().stream().anyMatch(element -> element.mayHaveProperty(propertyName));
+    }
+    throw new AssertionError();
   }
 
   public final ImmutableSet<String> getId() {

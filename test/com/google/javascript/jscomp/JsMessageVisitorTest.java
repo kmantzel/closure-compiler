@@ -63,9 +63,9 @@ public final class JsMessageVisitorTest {
         n.setOriginalName(originalName);
         n.setString("some_prefix_" + originalName);
       } else if (n.isGetProp() && parent.isAssign() && n.getQualifiedName().contains(".MSG_")) {
-        String originalName = n.getLastChild().getString();
+        String originalName = Node.getGetpropString(n);
         n.setOriginalName(originalName);
-        n.getLastChild().setString("some_prefix_" + originalName);
+        Node.setGetpropString(n, "some_prefix_" + originalName);
       }
     }
   }
@@ -1036,7 +1036,7 @@ public final class JsMessageVisitorTest {
   private class CollectMessages extends JsMessageVisitor {
 
     private CollectMessages(Compiler compiler) {
-      super(compiler, true, mode, null);
+      super(compiler, mode, null);
     }
 
     @Override
@@ -1049,7 +1049,7 @@ public final class JsMessageVisitorTest {
   private static class DummyJsVisitor extends JsMessageVisitor {
 
     private DummyJsVisitor(Style style) {
-      super(null, true, style, null);
+      super(null, style, null);
     }
 
     @Override

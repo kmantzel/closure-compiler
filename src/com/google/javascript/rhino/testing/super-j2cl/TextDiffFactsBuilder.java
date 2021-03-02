@@ -37,94 +37,47 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-package com.google.javascript.rhino.jstype;
+package com.google.javascript.rhino.testing;
 
-import static com.google.javascript.rhino.jstype.TernaryValue.UNKNOWN;
+import static com.google.common.base.Preconditions.checkNotNull;
+import static com.google.common.truth.Fact.fact;
 
-import com.google.javascript.rhino.ErrorReporter;
+import com.google.common.collect.ImmutableList;
+import com.google.common.truth.Fact;
 
 /**
- * All type, representing all values.
+ * Builds Fact objects for use with the Truth library that represent the difference between two text
+ * strings.
  */
-public final class AllType extends JSType {
-  AllType(JSTypeRegistry registry) {
-    super(registry);
-    this.eagerlyResolveToSelf();
+public class TextDiffFactsBuilder {
+
+  private final String title;
+  private String expectedText;
+  private String actualText;
+
+  public TextDiffFactsBuilder(String title) {
+    this.title = title;
   }
 
-  @Override
-  JSTypeClass getTypeClass() {
-    return JSTypeClass.ALL;
+  public TextDiffFactsBuilder expectedText(String expectedText) {
+    this.expectedText = expectedText;
+    return this;
   }
 
-  @Override
-  public boolean isAllType() {
-    return true;
+  public TextDiffFactsBuilder actualText(String actualText) {
+    this.actualText = actualText;
+    return this;
   }
 
-  @Override
-  public boolean matchesStringContext() {
-    // Be lenient.
-    return true;
-  }
-
-  @Override
-  public boolean matchesObjectContext() {
-    // Be lenient.
-    return true;
-  }
-
-  @Override
-  public TernaryValue testForEquality(JSType that) {
-    return UNKNOWN;
-  }
-
-  @Override
-  void appendTo(TypeStringBuilder sb) {
-    sb.append("*");
-  }
-
-  @Override
-  public String getDisplayName() {
-    return "<Any Type>";
-  }
-
-  @Override
-  public boolean hasDisplayName() {
-    return true;
-  }
-
-  @Override
-  public <T> T visit(Visitor<T> visitor) {
-    return visitor.caseAllType();
-  }
-
-  @Override <T> T visit(RelationshipVisitor<T> visitor, JSType that) {
-    return visitor.caseAllType(that);
-  }
-
-  @Override
-  public BooleanLiteralSet getPossibleToBooleanOutcomes() {
-    return BooleanLiteralSet.BOTH;
-  }
-
-  @Override
-  final JSType resolveInternal(ErrorReporter reporter) {
-    throw new AssertionError();
-  }
-
-  @Override
-  int recursionUnsafeHashCode() {
-    return System.identityHashCode(this);
-  }
-
-  @Override
-  public boolean isNullable() {
-    return true;
-  }
-
-  @Override
-  public boolean isVoidable() {
-    return true;
+  /**
+   * Returns one or more Fact objects representing the difference between the expected and actual
+   * text strings, which must be specified by calling their methods before calling this one.
+   */
+  public ImmutableList<Fact> build() {
+    // Super simple implementation that just prints the expected and actual text.
+    ImmutableList.Builder<Fact> factsBuilder = ImmutableList.builder();
+    factsBuilder.add(fact(title + " expected", checkNotNull(expectedText)));
+    factsBuilder.add(fact(title + " actual", checkNotNull(actualText)));
+    return factsBuilder.build();
   }
 }

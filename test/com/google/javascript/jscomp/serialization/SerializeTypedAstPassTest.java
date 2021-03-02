@@ -22,7 +22,6 @@ import static com.google.common.truth.extensions.proto.ProtoTruth.assertThat;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.javascript.jscomp.Compiler;
-import com.google.javascript.jscomp.CompilerOptions.LanguageMode;
 import com.google.javascript.jscomp.CompilerPass;
 import com.google.javascript.jscomp.CompilerTestCase;
 import com.google.javascript.jscomp.DiagnosticGroups;
@@ -78,7 +77,6 @@ public final class SerializeTypedAstPassTest extends CompilerTestCase {
 
   @Test
   public void testNativeTypesAreNotSerialized() {
-    setAcceptedLanguage(LanguageMode.UNSUPPORTED);
     assertThat(compileToTypes("const /** bigint */ x = 1n;"))
         .ignoringFieldDescriptors(COMMONLY_IGNORED_FIELDS)
         .containsExactlyElementsIn(nativeObjects());
@@ -256,6 +254,29 @@ public final class SerializeTypedAstPassTest extends CompilerTestCase {
         .contains(
             TypeProto.newBuilder()
                 .setObject(namedObjectBuilder("enum{E}").setPropertiesKeepOriginalName(true))
+                .build());
+  }
+
+  @Test
+  public void marksClosureAssertions() {
+    assertThat(
+            compileToTypes(
+                lines(
+                    "/** @closurePrimitive {asserts.truthy} */",
+                    "function assert(x) { if (!x) { throw new Error(); }}",
+                    "",
+                    "/** @closurePrimitive {asserts.fail} */",
+                    "function fail() { throw new Error(); }")))
+        .ignoringFieldDescriptors(COMMONLY_IGNORED_FIELDS)
+        .containsAtLeast(
+            TypeProto.newBuilder()
+                .setObject(
+                    namedObjectBuilder("assert").setClosureAssert(true).setIsInvalidating(true))
+                .build(),
+            TypeProto.newBuilder()
+                .setObject(
+                    // ClosurePrimitive.ASSERTS_FAIL is not a removable Closure assertion
+                    namedObjectBuilder("fail").setClosureAssert(false).setIsInvalidating(true))
                 .build());
   }
 

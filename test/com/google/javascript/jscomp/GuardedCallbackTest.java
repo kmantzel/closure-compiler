@@ -16,7 +16,6 @@
 
 package com.google.javascript.jscomp;
 
-import com.google.javascript.jscomp.CompilerOptions.LanguageMode;
 import com.google.javascript.jscomp.testing.TestExternsBuilder;
 import com.google.javascript.rhino.Node;
 import org.junit.Before;
@@ -32,7 +31,6 @@ public final class GuardedCallbackTest extends CompilerTestCase {
   @Before
   public void setUp() throws Exception {
     super.setUp();
-    setAcceptedLanguage(LanguageMode.UNSUPPORTED);
   }
 
   @Override
@@ -61,10 +59,9 @@ public final class GuardedCallbackTest extends CompilerTestCase {
         n.setString("GUARDED_NAME");
         traversal.reportCodeChange();
       } else if (n.isGetProp() || n.isOptChainGetProp()) {
-        Node propNode = n.getSecondChild();
         // prefix guarded resource name with "." to keep properties distinct from names
-        if (isGuarded("." + propNode.getString())) {
-          propNode.setString("GUARDED_PROP");
+        if (isGuarded("." + Node.getGetpropString(n))) {
+          Node.setGetpropString(n, "GUARDED_PROP");
           traversal.reportCodeChange();
         }
       }

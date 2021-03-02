@@ -33,12 +33,6 @@ public final class MinimizeExitPointsTest extends CompilerTestCase {
   }
 
   @Override
-  protected CompilerOptions getOptions() {
-    CompilerOptions options = super.getOptions();
-    return options;
-  }
-
-  @Override
   protected CompilerPass getProcessor(final Compiler compiler) {
     return new PeepholeOptimizationsPass(compiler, getName(), new MinimizeExitPoints());
   }
@@ -328,7 +322,6 @@ public final class MinimizeExitPointsTest extends CompilerTestCase {
 
   @Test
   public void testCodeMotionDoesntBreakFunctionHoisting() {
-    setAcceptedLanguage(CompilerOptions.LanguageMode.ECMASCRIPT_2015);
     fold("function f() { if (x) return; foo(); function foo() {} }",
          "function f() { if (x); else { function foo() {} foo(); } }");
   }

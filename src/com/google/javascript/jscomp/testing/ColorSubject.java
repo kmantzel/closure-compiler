@@ -70,12 +70,24 @@ public final class ColorSubject extends Subject {
     check("isInvalidating").that(actualNonNull().isInvalidating()).isFalse();
   }
 
+  public void isClosureAssert() {
+    check("isClosureAssert()").that(actualNonNull().isClosureAssert()).isTrue();
+  }
+
   public void propertiesKeepOriginalName() {
     check("propertiesKeepOriginalName").that(actualNonNull().propertiesKeepOriginalName()).isTrue();
   }
 
   public IterableSubject withOwnPropertiesSetThat() {
     return check("getOwnProperties()").that(actualNonNull().getOwnProperties());
+  }
+
+  public void mayHaveProperty(String property) {
+    check("mayHaveProperty()").that(actualNonNull().mayHaveProperty(property)).isTrue();
+  }
+
+  public void doesNotHaveProperty(String property) {
+    check("mayHaveProperty()").that(actualNonNull().mayHaveProperty(property)).isFalse();
   }
 
   public void hasAlternates(Color... alternates) {

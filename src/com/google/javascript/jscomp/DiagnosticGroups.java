@@ -415,7 +415,6 @@ public class DiagnosticGroups {
   public static final DiagnosticGroup MISSING_PROVIDE =
       DiagnosticGroups.registerGroup(
           "missingProvide",
-          CheckProvides.MISSING_PROVIDE_WARNING,
           // TODO(b/143887932): Move this into a better DiagnosticGroup
           ClosurePrimitiveErrors.MISSING_MODULE_OR_PROVIDE_FOR_FORWARD_DECLARE);
 
@@ -722,7 +721,7 @@ public class DiagnosticGroups {
     DiagnosticGroups.registerGroup(
         "invalidProvide", ProcessClosurePrimitives.INVALID_PROVIDE_ERROR);
 
-    DiagnosticGroups.registerGroup("es6Typed", RhinoErrorReporter.MISPLACED_TYPE_SYNTAX);
+    DiagnosticGroups.registerDeprecatedGroup("es6Typed");
 
     DiagnosticGroups.registerDeprecatedGroup("duplicateZipContents");
 

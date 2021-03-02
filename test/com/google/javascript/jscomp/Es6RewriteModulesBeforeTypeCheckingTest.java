@@ -17,7 +17,6 @@
 package com.google.javascript.jscomp;
 
 import com.google.common.collect.ImmutableList;
-import com.google.javascript.jscomp.CompilerOptions.LanguageMode;
 import com.google.javascript.jscomp.deps.ModuleLoader;
 import com.google.javascript.jscomp.deps.ModuleLoader.ResolutionMode;
 import com.google.javascript.jscomp.modules.ModuleMapCreator;
@@ -68,7 +67,6 @@ public final class Es6RewriteModulesBeforeTypeCheckingTest extends CompilerTestC
   public void setUp() throws Exception {
     super.setUp();
     // ECMASCRIPT5 to trigger module processing after parsing.
-    setLanguage(LanguageMode.ECMASCRIPT_2015, LanguageMode.ECMASCRIPT5);
     enableCreateModuleMap();
     enableTypeCheck();
     enableRunTypeCheckAfterProcessing();
@@ -80,7 +78,6 @@ public final class Es6RewriteModulesBeforeTypeCheckingTest extends CompilerTestC
   protected CompilerOptions getOptions() {
     CompilerOptions options = super.getOptions();
     // ECMASCRIPT5 to Trigger module processing after parsing.
-    options.setLanguageOut(LanguageMode.ECMASCRIPT5);
     options.setWarningLevel(DiagnosticGroups.LINT_CHECKS, CheckLevel.ERROR);
 
     if (moduleRoots != null) {
@@ -1262,7 +1259,6 @@ public final class Es6RewriteModulesBeforeTypeCheckingTest extends CompilerTestC
 
   @Test
   public void testImportMeta() {
-    setLanguage(LanguageMode.ECMASCRIPT_NEXT, LanguageMode.ECMASCRIPT_NEXT);
 
     testError("import.meta", Es6ToEs3Util.CANNOT_CONVERT);
   }

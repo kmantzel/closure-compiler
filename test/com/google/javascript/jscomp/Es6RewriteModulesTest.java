@@ -19,7 +19,6 @@ package com.google.javascript.jscomp;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import com.google.common.collect.ImmutableList;
-import com.google.javascript.jscomp.CompilerOptions.LanguageMode;
 import com.google.javascript.jscomp.deps.ModuleLoader;
 import com.google.javascript.jscomp.type.ReverseAbstractInterpreter;
 import com.google.javascript.jscomp.type.SemanticReverseAbstractInterpreter;
@@ -76,7 +75,6 @@ public final class Es6RewriteModulesTest extends CompilerTestCase {
   public void setUp() throws Exception {
     super.setUp();
     // ECMASCRIPT5 to trigger module processing after parsing.
-    setLanguage(LanguageMode.ECMASCRIPT_2015, LanguageMode.ECMASCRIPT5);
     enableCreateModuleMap();
     enableTypeInfoValidation();
     disableScriptFeatureValidation();
@@ -86,7 +84,6 @@ public final class Es6RewriteModulesTest extends CompilerTestCase {
   protected CompilerOptions getOptions() {
     CompilerOptions options = super.getOptions();
     // ECMASCRIPT5 to Trigger module processing after parsing.
-    options.setLanguageOut(LanguageMode.ECMASCRIPT5);
     options.setWarningLevel(DiagnosticGroups.LINT_CHECKS, CheckLevel.ERROR);
     options.setPrettyPrint(true);
 
@@ -1335,7 +1332,6 @@ public final class Es6RewriteModulesTest extends CompilerTestCase {
 
   @Test
   public void testImportMeta() {
-    setLanguage(LanguageMode.ECMASCRIPT_NEXT, LanguageMode.ECMASCRIPT_NEXT);
 
     testError("import.meta", Es6ToEs3Util.CANNOT_CONVERT);
   }

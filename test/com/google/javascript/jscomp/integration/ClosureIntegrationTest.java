@@ -256,7 +256,6 @@ public final class ClosureIntegrationTest extends IntegrationTestCase {
   @Test
   public void testUnresolvedDefine() {
     CompilerOptions options = new CompilerOptions();
-    options.setLanguageIn(LanguageMode.ECMASCRIPT3);
     options.setClosurePass(true);
     options.setCheckTypes(true);
     DiagnosticGroup[] warnings = {
@@ -308,7 +307,6 @@ public final class ClosureIntegrationTest extends IntegrationTestCase {
   @Test
   public void testDisableModuleRewriting() {
     CompilerOptions options = new CompilerOptions();
-    options.setLanguageIn(LanguageMode.ECMASCRIPT3);
     options.setClosurePass(true);
     options.setCodingConvention(new ClosureCodingConvention());
     options.setEnableModuleRewriting(false);
@@ -329,7 +327,6 @@ public final class ClosureIntegrationTest extends IntegrationTestCase {
   @Test
   public void testDisableModuleRewriting_doesntCrashWhenFirstInputIsModule_andGoogScopeUsed() {
     CompilerOptions options = createCompilerOptions();
-    options.setLanguageIn(LanguageMode.ECMASCRIPT3);
     options.setClosurePass(true);
     options.setCodingConvention(new ClosureCodingConvention());
     options.setEnableModuleRewriting(false);
@@ -593,16 +590,6 @@ public final class ClosureIntegrationTest extends IntegrationTestCase {
   }
 
   @Test
-  public void testCheckProvidesOn() {
-    CompilerOptions options = createCompilerOptions();
-    options.setWarningLevel(DiagnosticGroups.MISSING_PROVIDE, CheckLevel.ERROR);
-    test(
-        options,
-        new String[] {"goog.require('x'); /** @constructor */ function Foo() {}", "new Foo();"},
-        DiagnosticGroups.MISSING_PROVIDE);
-  }
-
-  @Test
   public void testGoogDefine1() {
     String code =
         CLOSURE_BOILERPLATE + "/** @define {boolean} */ var FLAG = goog.define('FLAG_XYZ', true);";
@@ -761,30 +748,6 @@ public final class ClosureIntegrationTest extends IntegrationTestCase {
   }
 
   @Test
-  public void testCheckProvidesWarning() {
-    CompilerOptions options = createCompilerOptions();
-    options.setLanguageIn(LanguageMode.ECMASCRIPT3);
-    options.setWarningLevel(DiagnosticGroups.MISSING_PROVIDE, CheckLevel.WARNING);
-    options.setWarningLevel(DiagnosticGroups.ES5_STRICT, CheckLevel.OFF);
-    test(
-        options,
-        "goog.require('x'); /** @constructor */ function f() { var arguments; }",
-        DiagnosticGroups.MISSING_SOURCES_WARNINGS);
-  }
-
-  @Test
-  public void testSuppressCheckProvidesWarning() {
-    CompilerOptions options = createCompilerOptions();
-    options.setWarningLevel(DiagnosticGroups.MISSING_PROVIDE,
-        CheckLevel.WARNING);
-    options.setWarningLevel(DiagnosticGroups.MISSING_PROVIDE, CheckLevel.WARNING);
-    testSame(options,
-        "/** @constructor\n" +
-        " *  @suppress{missingProvide} */\n" +
-        "function f() {}");
-  }
-
-  @Test
   public void testSortingOff() {
     CompilerOptions options = new CompilerOptions();
     options.setClosurePass(true);
@@ -799,7 +762,6 @@ public final class ClosureIntegrationTest extends IntegrationTestCase {
   public void testGoogModuleDuplicateExport() {
     CompilerOptions options = createCompilerOptions();
     options.setClosurePass(true);
-    options.setLanguageIn(LanguageMode.ECMASCRIPT_2015);
     options.setLanguageOut(LanguageMode.ECMASCRIPT5);
     options.setStrictModeInput(true);
     options.setWarningLevel(DiagnosticGroups.ES5_STRICT, CheckLevel.ERROR);
@@ -820,7 +782,6 @@ public final class ClosureIntegrationTest extends IntegrationTestCase {
   @Test
   public void testGoogModuleOuterLegacyInner() {
     CompilerOptions options = new CompilerOptions();
-    options.setLanguageIn(LanguageMode.ECMASCRIPT3);
     options.setClosurePass(true);
     options.setCodingConvention(new ClosureCodingConvention());
 
@@ -869,7 +830,6 @@ public final class ClosureIntegrationTest extends IntegrationTestCase {
   @Test
   public void testLegacyGoogModuleExport1() {
     CompilerOptions options = new CompilerOptions();
-    options.setLanguageIn(LanguageMode.ECMASCRIPT3);
     options.setClosurePass(true);
     options.setCodingConvention(new ClosureCodingConvention());
     options.setGenerateExports(true);
@@ -906,7 +866,6 @@ public final class ClosureIntegrationTest extends IntegrationTestCase {
   @Test
   public void testLegacyGoogModuleExport2() {
     CompilerOptions options = new CompilerOptions();
-    options.setLanguageIn(LanguageMode.ECMASCRIPT3);
     options.setClosurePass(true);
     options.setCodingConvention(new ClosureCodingConvention());
     options.setGenerateExports(true);
@@ -1169,7 +1128,10 @@ public final class ClosureIntegrationTest extends IntegrationTestCase {
     Node modulecontentsFooMethod = callNode.getFirstChild();
     // Verify this is actually "Foo.method" - it used to be "Foo.foo".
     assertThat(modulecontentsFooMethod.getOriginalQualifiedName()).isEqualTo("Foo.method");
-    assertThat(modulecontentsFooMethod.getSecondChild().getOriginalName()).isNull();
+    assertThat(modulecontentsFooMethod.getOriginalName()).isEqualTo("method");
+    if (!Node.isStringGetprop(modulecontentsFooMethod)) {
+      assertThat(modulecontentsFooMethod.getSecondChild().getOriginalName()).isNull();
+    }
   }
 
   @Test

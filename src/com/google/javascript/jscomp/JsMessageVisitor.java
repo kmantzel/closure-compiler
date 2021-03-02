@@ -109,7 +109,6 @@ public abstract class JsMessageVisitor extends AbstractPostOrderCallback impleme
   // For old-style JS messages
   private static final String DESC_SUFFIX = "_HELP";
 
-  private final boolean needToCheckDuplications;
   private final JsMessage.Style style;
   private final JsMessage.IdGenerator idGenerator;
   final AbstractCompiler compiler;
@@ -137,18 +136,13 @@ public abstract class JsMessageVisitor extends AbstractPostOrderCallback impleme
    * Creates JS message visitor.
    *
    * @param compiler the compiler instance
-   * @param needToCheckDuplications whether to check duplicated messages in traversed
    * @param style style that should be used during parsing
    * @param idGenerator generator that used for creating unique ID for the message
    */
   protected JsMessageVisitor(
-      AbstractCompiler compiler,
-      boolean needToCheckDuplications,
-      JsMessage.Style style,
-      JsMessage.IdGenerator idGenerator) {
+      AbstractCompiler compiler, JsMessage.Style style, JsMessage.IdGenerator idGenerator) {
 
     this.compiler = compiler;
-    this.needToCheckDuplications = needToCheckDuplications;
     this.style = style;
     this.idGenerator = idGenerator;
 
@@ -203,7 +197,7 @@ public abstract class JsMessageVisitor extends AbstractPostOrderCallback impleme
           return;
         }
 
-        messageKey = getProp.getLastChild().getString();
+        messageKey = Node.getGetpropString(getProp);
         originalMessageKey = getProp.getOriginalName();
         msgNode = node.getLastChild();
         isVar = false;
@@ -298,7 +292,7 @@ public abstract class JsMessageVisitor extends AbstractPostOrderCallback impleme
     JsMessage extractedMessage = builder.build(idGenerator);
 
     // If asked to check named internal messages.
-    if (needToCheckDuplications && !isUnnamedMsg && !extractedMessage.isExternal()) {
+    if (!isUnnamedMsg && !extractedMessage.isExternal()) {
       checkIfMessageDuplicated(messageKey, msgNode);
     }
     trackMessage(traversal, extractedMessage, messageKey, msgNode, isUnnamedMsg);
@@ -368,7 +362,7 @@ public abstract class JsMessageVisitor extends AbstractPostOrderCallback impleme
   private static boolean isLegalMessageVarAlias(Node msgNode) {
     if (msgNode.isGetProp()
         && msgNode.isQualifiedName()
-        && msgNode.getLastChild().getString().startsWith(MSG_PREFIX)) {
+        && Node.getGetpropString(msgNode).startsWith(MSG_PREFIX)) {
       // Case: `foo.Thing.MSG_EXAMPLE_ALIAS = bar.OtherThing.MSG_EXAMPLE;`
       //
       // This kind of construct is created by TypeScript code generation and

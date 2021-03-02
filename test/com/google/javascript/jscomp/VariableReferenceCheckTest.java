@@ -24,7 +24,6 @@ import static com.google.javascript.jscomp.VariableReferenceCheck.REASSIGNED_CON
 import static com.google.javascript.jscomp.VariableReferenceCheck.REDECLARED_VARIABLE;
 import static com.google.javascript.jscomp.VariableReferenceCheck.REDECLARED_VARIABLE_ERROR;
 
-import com.google.javascript.jscomp.CompilerOptions.LanguageMode;
 import com.google.javascript.jscomp.deps.ModuleLoader;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -53,7 +52,6 @@ public final class VariableReferenceCheckTest extends CompilerTestCase {
   @Test
   public void testWithImportMeta() {
     // just to confirm that presence of import.meta does not cause a compiler crash
-    setLanguage(LanguageMode.UNSUPPORTED, LanguageMode.UNSUPPORTED);
 
     testSame("export function g() { return import.meta; }");
   }
@@ -699,7 +697,7 @@ public final class VariableReferenceCheckTest extends CompilerTestCase {
       "var x;",
       "function x() {}",
     };
-    String message = "Variable x declared more than once. First occurrence: input0";
+    String message = "Variable x declared more than once. First occurrence: testcode0";
     testError(srcs(js), error(VarCheck.VAR_MULTIPLY_DECLARED_ERROR).withMessage(message));
   }
 
@@ -709,7 +707,7 @@ public final class VariableReferenceCheckTest extends CompilerTestCase {
       "function x() {}",
       "var x;",
     };
-    String message = "Variable x declared more than once. First occurrence: input0";
+    String message = "Variable x declared more than once. First occurrence: testcode0";
     testError(srcs(js), error(VarCheck.VAR_MULTIPLY_DECLARED_ERROR).withMessage(message));
   }
 
@@ -869,7 +867,6 @@ public final class VariableReferenceCheckTest extends CompilerTestCase {
 
   @Test
   public void testObjectPatternRest() {
-    setAcceptedLanguage(LanguageMode.ECMASCRIPT_2018);
     assertNoWarning("var {a: b, ...r} = {a: 1};");
     assertNoWarning("var {a: b, ...r} = {};");
     assertNoWarning("var {a, ...r} = {a: 1};");

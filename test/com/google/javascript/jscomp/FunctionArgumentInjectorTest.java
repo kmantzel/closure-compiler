@@ -17,7 +17,6 @@ package com.google.javascript.jscomp;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.truth.Truth.assertThat;
-import static com.google.javascript.jscomp.CompilerOptions.LanguageMode.ECMASCRIPT_NEXT_IN;
 import static com.google.javascript.jscomp.NodeUtil.getFunctionBody;
 import static com.google.javascript.rhino.testing.NodeSubject.assertNode;
 
@@ -48,7 +47,6 @@ public final class FunctionArgumentInjectorTest {
   public void setUp() {
     compiler = new Compiler();
     CompilerOptions options = new CompilerOptions();
-    options.setLanguageIn(ECMASCRIPT_NEXT_IN);
 
     compiler.initOptions(options);
     functionArgumentInjector = new FunctionArgumentInjector(compiler.getAstAnalyzer());
@@ -736,11 +734,10 @@ public final class FunctionArgumentInjectorTest {
   private static Node findCall(Node n, String name) {
     if (NodeUtil.isNormalOrOptChainCall(n)) {
       Node callee;
-      if (NodeUtil.isNormalOrOptChainGet(n.getFirstChild())) {
+      if (NodeUtil.isNormalOrOptChainGetProp(n.getFirstChild())) {
         callee = n.getFirstFirstChild();
-        Node prop = callee.getNext();
         // Only "call" is supported at this point.
-        checkArgument(prop.isString() && prop.getString().equals("call"));
+        checkArgument(Node.getGetpropString(callee.getParent()).equals("call"));
       } else {
         callee = n.getFirstChild();
       }

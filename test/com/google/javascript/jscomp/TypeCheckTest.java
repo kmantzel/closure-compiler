@@ -28,7 +28,6 @@ import static com.google.javascript.rhino.testing.TypeSubject.assertType;
 
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
-import com.google.javascript.jscomp.CompilerOptions.LanguageMode;
 import com.google.javascript.jscomp.testing.TestExternsBuilder;
 import com.google.javascript.jscomp.type.ClosureReverseAbstractInterpreter;
 import com.google.javascript.jscomp.type.SemanticReverseAbstractInterpreter;
@@ -67,13 +66,6 @@ public final class TypeCheckTest extends TypeCheckTestCase {
       "Cannot add a property"
           + " to a struct instance after it is constructed. (If you already declared the property,"
           + " make sure to give it a type.)";
-
-  @Override
-  protected CompilerOptions getDefaultOptions() {
-    CompilerOptions options = super.getDefaultOptions();
-    options.setLanguageOut(LanguageMode.ECMASCRIPT5);
-    return options;
-  }
 
   @Test
   public void testInitialTypingScope() {
@@ -15428,7 +15420,11 @@ public final class TypeCheckTest extends TypeCheckTestCase {
   @Test
   public void testGetTypedPercent3() {
     String js = "var f = function(x) { x.a = x.b; }";
-    assertThat(getTypedPercent(js)).isWithin(0.1).of(50.0);
+    if (Node.isStringGetprop(IR.getprop(IR.nullNode(), "test"))) {
+      assertThat(getTypedPercent(js)).isWithin(0.1).of(25.0);
+    } else {
+      assertThat(getTypedPercent(js)).isWithin(0.1).of(50.0);
+    }
   }
 
   @Test
@@ -24225,7 +24221,7 @@ public final class TypeCheckTest extends TypeCheckTestCase {
             "};",
             "var a = new x.y.A();"),
         new String[] {
-          "Property y never defined on x", "Property A never defined on x.y",
+          "Property A never defined on x.y", "Property y never defined on x",
         });
   }
 
