@@ -181,10 +181,6 @@ public final class SourceMapConsumerV3 implements SourceMapConsumer,
     }
 
     int index = search(entries, column, 0, entries.size() - 1);
-    if (!approximateMappings && index == -1) {
-      return null;
-    }
-    
     Preconditions.checkState(index >= 0, "unexpected:%s", index);
     return getOriginalMappingForEntry(entries.get(index));
   }
