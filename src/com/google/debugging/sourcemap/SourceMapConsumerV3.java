@@ -519,7 +519,7 @@ public final class SourceMapConsumerV3 implements SourceMapConsumer,
    * A implementation of the Base64VLQ CharIterator used for decoding the
    * mappings encoded in the JSON string.
    */
-  private static class StringCharIterator implements CharIterator {
+  private class StringCharIterator implements CharIterator {
     final String content;
     final int length;
     int current = 0;
