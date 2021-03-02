@@ -401,7 +401,7 @@ public final class SourceMapConsumerV3 implements SourceMapConsumer,
    * Perform a binary search on the array to find a section that covers
    * the target column.
    */
-  private int search(ArrayList<Entry> entries, int target, int start, int end) {
+  private static int search(ArrayList<Entry> entries, int target, int start, int end) {
     while (true) {
       int mid = ((end - start) / 2) + start;
       int compare = compareEntry(entries, mid, target);
@@ -516,7 +516,7 @@ public final class SourceMapConsumerV3 implements SourceMapConsumer,
    * A implementation of the Base64VLQ CharIterator used for decoding the
    * mappings encoded in the JSON string.
    */
-  private class StringCharIterator implements CharIterator {
+  private static class StringCharIterator implements CharIterator {
     final String content;
     final int length;
     int current = 0;
